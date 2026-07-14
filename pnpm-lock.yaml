@@ -23,6 +23,9 @@ importers:
       '@latitude-data/telemetry':
         specifier: latest
         version: 3.6.0(@langchain/core@1.2.2(@opentelemetry/api@1.9.1)(@opentelemetry/sdk-trace-base@2.7.0(@opentelemetry/api@1.9.1)))
+      '@opentelemetry/api':
+        specifier: ^1.9.1
+        version: 1.9.1
       ai:
         specifier: latest
         version: 7.0.26(zod@4.4.3)

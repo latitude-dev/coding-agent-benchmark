@@ -1,4 +1,5 @@
 import { generateText, stepCountIs } from 'ai'
+import { trace } from '@opentelemetry/api'
 import { capture } from '@latitude-data/telemetry'
 import { Sandbox } from './sandbox.ts'
 import { createTools } from './tools.ts'
@@ -17,6 +18,7 @@ export type RunResult = {
   task: string
   trial: number
   status: 'ok' | 'agent_error'
+  traceId: string | null
   solved: boolean
   tamper: boolean
   steps: number
@@ -51,6 +53,15 @@ function tokenCount(value: unknown): number {
   return 0
 }
 
+// AI SDK v7 totalUsage reports cache reads under inputTokenDetails, not cachedInputTokens.
+function cachedTokenCount(usage: Record<string, unknown>): number {
+  const details = usage.inputTokenDetails
+  if (details && typeof details === 'object' && 'cacheReadTokens' in details) {
+    return (details as { cacheReadTokens?: number }).cacheReadTokens ?? 0
+  }
+  return tokenCount(usage.cachedInputTokens)
+}
+
 function countMalformedCalls(steps: unknown[]): number {
   let malformed = 0
   for (const step of steps) {
@@ -76,6 +87,7 @@ export async function runOne(
   const { tools, stats } = createTools(sandbox)
   const startedAt = Date.now()
   let firstActionMs: number | null = null
+  let traceId: string | null = null
 
   const base = {
     runId,
@@ -87,8 +99,9 @@ export async function runOne(
   try {
     const result = await capture(
       `fix:${task.id}`,
-      () =>
-        generateText({
+      () => {
+        traceId = trace.getActiveSpan()?.spanContext().traceId ?? null
+        return generateText({
           model: spec.model(),
           instructions: INSTRUCTIONS,
           prompt: task.prompt,
@@ -99,7 +112,8 @@ export async function runOne(
               firstActionMs = Date.now() - startedAt
             }
           },
-        }),
+        })
+      },
       {
         metadata: { ...base, benchmark: 'coding-agent-v1' },
         tags: [`model:${spec.key}`, `task:${task.id}`, `trial:${trial}`, 'coding-benchmark'],
@@ -111,21 +125,25 @@ export async function runOne(
     const wallMs = Date.now() - startedAt
     const verification = await sandbox.verify()
     const usage = result.totalUsage as Record<string, unknown>
+    const inputTokens = tokenCount(usage.inputTokens)
+    const outputTokens = tokenCount(usage.outputTokens)
+    const cachedInputTokens = cachedTokenCount(usage)
 
     return {
       ...base,
       finishedAt: new Date().toISOString(),
       status: 'ok',
+      traceId,
       solved: verification.passed,
       tamper: stats.testFileWrites > 0,
       steps: result.steps.length,
       toolCalls: stats.calls,
       toolErrors: stats.errors,
       malformedCalls: countMalformedCalls(result.steps),
-      inputTokens: tokenCount(usage.inputTokens),
-      outputTokens: tokenCount(usage.outputTokens),
-      cachedInputTokens: tokenCount(usage.cachedInputTokens),
-      costUsd: computeCostUsd(spec, usage),
+      inputTokens,
+      outputTokens,
+      cachedInputTokens,
+      costUsd: computeCostUsd(spec, { inputTokens, outputTokens, cachedInputTokens }),
       wallMs,
       firstActionMs,
       finishReason: String(result.finishReason),
@@ -135,6 +153,7 @@ export async function runOne(
       ...base,
       finishedAt: new Date().toISOString(),
       status: 'agent_error',
+      traceId,
       solved: false,
       tamper: stats.testFileWrites > 0,
       steps: 0,

@@ -18,6 +18,7 @@
     "@ai-sdk/openai": "latest",
     "@ai-sdk/otel": "latest",
     "@latitude-data/telemetry": "latest",
+    "@opentelemetry/api": "^1.9.1",
     "ai": "latest",
     "zod": "^4.0.0"
   }
