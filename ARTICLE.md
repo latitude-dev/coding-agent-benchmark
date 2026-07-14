@@ -23,6 +23,8 @@ What varied was the bill. Cost per solved task on the hard tier:
 | GPT-5.5 | $0.070 | 19.2s |
 | Claude Opus 4.8 | $0.144 | 20.4s |
 
+Claude Fable 5 is not in this table for a reason that gets its own section below: it refused 16 of its 18 hard-tier runs, and two solved tasks are not enough runs to price fairly. On the easy tier, where it attempted 23 runs and solved all of them, it came in at $0.16 per solved task with a 29-second median, the most expensive and slowest of the field even before counting what its refusals cost.
+
 That is an 8x spread for identical outcomes. The move from single-file to multi-file bugs doubled Opus's cost per solve and did not move Codex's at all, which stayed at $0.018 across both tiers. When every model gets you the same green checkmark, paying flagship prices for routine fixes is pure waste.
 
 ## Take the tests away and one bug sorts the field
