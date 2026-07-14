@@ -1,6 +1,6 @@
-# We benchmarked five frontier models as coding agents, and capability was the boring column
+# We benchmarked five frontier models as coding agents. All of them can code. That is not what separates them.
 
-Last week we gave five frontier models the same job: here is a small JavaScript project, here is a bug report, there are four tools, go fix it. Claude Opus 4.8, Claude Sonnet 5, Claude Fable 5, GPT-5.5, and GPT-5.3 Codex each ran the same 18 tasks three times, 360 runs in total, every one traced into Latitude. We expected a capability ranking. What we got instead was a tie on capability and a wide spread on the metrics nobody puts on a leaderboard: what a solved task costs, how fast it lands, and whether the model shows up at all.
+Last week we gave five frontier models the same job: here is a small JavaScript project, here is a bug report, there are four tools, go fix it. Claude Opus 4.8, Claude Sonnet 5, Claude Fable 5, GPT-5.5, and GPT-5.3 Codex each ran the same 18 tasks three times, 360 runs in total, every one traced into Latitude. We expected a ranking of who fixes bugs best. Instead, everyone fixed the bugs, and the real differences showed up in things no leaderboard measures: what a solved task costs, how fast it lands, and whether the model agrees to do the work at all.
 
 One disclosure belongs ahead of the numbers. The harness was built and operated by Claude Fable 5 running as a coding agent, and Fable 5 is also a contestant. Every result below is reproducible from the repo, and the raw traces carry the evidence.
 
@@ -16,7 +16,7 @@ The agent loop is deliberately plain: Vercel AI SDK, four tools (list files, rea
 
 ## With a test suite in reach, everybody solves everything
 
-All five models solved 100 percent of the runs they attempted, on both tiers. Multi-file bugs did not slow anyone down. Out of 1,933 tool calls in the benchmark there was not a single malformed call, wrong tool, or bad path, and not one model ever touched a test file. Tool discipline in these agents is simply no longer an interesting question.
+All five models solved 100 percent of the runs they attempted, on both tiers. Multi-file bugs did not slow anyone down. Out of 1,933 tool calls in the benchmark there was not a single malformed call, wrong tool, or bad path, and not one model ever touched a test file. Whether these models can use tools correctly is simply no longer an interesting question.
 
 What varied was the bill. Cost per solved task on the hard tier:
 
@@ -37,9 +37,9 @@ That is an 8x spread for identical outcomes. The move from single-file to multi-
 
 The third tier reused the six hard tasks but removed the safety net: no test files in the workspace, no way to execute code, just the bug report and the source. A hidden suite scored the fix afterward. This isolates diagnosis, because the model has to commit to a root cause it cannot verify.
 
-Five of the six tasks still got solved by everyone. The entire benchmark's capability signal collapsed into one bug: an event bus where a once-listener double-fires only when the same event is emitted again from inside a listener, because the wrapper assumes self-removal takes effect mid-dispatch while the bus iterates a snapshot. GPT-5.5 fixed it three times out of three. Opus 4.8, Sonnet 5, Fable 5, and Codex each got it once out of three.
+Five of the six tasks still got solved by everyone. In the end, one single bug was all that separated the models: an event bus where a once-listener double-fires only when the same event is emitted again from inside a listener, because the wrapper assumes self-removal takes effect mid-dispatch while the bus iterates a snapshot. GPT-5.5 fixed it three times out of three. Opus 4.8, Sonnet 5, Fable 5, and Codex each got it once out of three.
 
-That is the shape of the frontier right now. The gap between these models is not "can it fix bugs," it is "can it reason about re-entrant dispatch semantics without an oracle," and you only pay for that gap when no test can tell the model it is wrong. If your pipeline gives agents a failing test to iterate against, the $0.018 model and the $0.144 model produce the same outcome, and the discriminating case is rare enough that we had to engineer it on purpose.
+That is the shape of the frontier right now. The gap between these models is not whether they can fix bugs. It is whether they can reason through a genuinely tricky bug with nothing to check their answer against, and you only pay for that gap when no test can tell the model it is wrong. If your pipeline gives agents a failing test to iterate against, the $0.018 model and the $0.144 model produce the same outcome, and the discriminating case is rare enough that we had to engineer it on purpose.
 
 > 📸 **Screenshot 5, right and wrong, side by side.** Two trace details on `14-event-bus` in blind mode: a GPT-5.5 run (solved) next to a failed run from any other model, each open on the final assistant message where the model commits to its diagnosis. The failed one names a plausible but wrong root cause; that contrast is the whole point. Filter the traces list by tags `task:14-event-bus` + `mode:blind` to find them. Caption: "Same bug report, no tests to check against. One model reasons its way to the re-entrancy bug; the other commits to a plausible wrong fix."
 
@@ -69,6 +69,6 @@ We are not in a position to say what Anthropic's safety layer is doing internall
 
 ## What we'd actually do with these numbers
 
-Wire your agents to a verification loop and buy the cheap model. Everything with a test oracle in this benchmark was solved by the cheapest model in the lineup at a flat $0.018 per fix, and the expensive models added nothing but latency and cost. Save the flagship spend for work where nothing can tell the agent it is wrong, because that is the only place we could measure a quality difference at all. And treat refusal rate as a first-class production metric alongside cost and latency, measured on your own traffic, because none of the three findings above appears on any public leaderboard.
+Wire your agents to a verification loop and buy the cheap model. Every task where the agent could run the tests was solved by the cheapest model in the lineup at a flat $0.018 per fix, and the expensive models added nothing but latency and cost. Save the flagship spend for work where nothing can tell the agent it is wrong, because that is the only place we could measure a quality difference at all. And treat refusal rate as a first-class production metric alongside cost and latency, measured on your own traffic, because none of the three findings above appears on any public leaderboard.
 
 The harness, tasks, and analysis are in the repo, and the whole run cost $23 in API spend. Point it at whatever models you are choosing between; the numbers that matter are the ones from your own workload.
