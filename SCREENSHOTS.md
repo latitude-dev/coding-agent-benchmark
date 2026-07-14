@@ -16,8 +16,6 @@ Capture list for the published version of ARTICLE.md. Each entry notes the secti
 
 ## Placed in: When the tests are hidden
 
-📸 **Screenshot 5, right and wrong, side by side.** Two trace details on `14-event-bus` in blind mode: a GPT-5.5 run (solved) next to a failed run from any other model, each open on the final assistant message where the model commits to its diagnosis. The failed one names a plausible but wrong root cause; that contrast is the whole point. Filter the traces list by tags `task:14-event-bus` + `mode:blind` to find them. Caption: "Same bug report, no tests to check against. One model reasons its way to the re-entrancy bug; the other commits to a plausible wrong fix."
-
 📸 **Screenshot 6, the scoreboard the harness pushed back.** Scores or annotations analytics for the project: pass rate broken down by model, showing GPT-5.5 at 100 percent with the rest of the field spread below it once blind runs land. Every run's verdict was pushed onto its trace as a custom score by the harness (`sourceId: benchmark-harness`), so this chart is Latitude recomputing our results table on its own. Caption: "Pass rate by model, computed from scores attached to each trace, not from the harness's private spreadsheet."
 
 ## Placed in: What prompt caching does to the bill

@@ -77,13 +77,6 @@ The first pass ran every blind task three times per model, and this bug was the 
 
 GPT-5.5 against the rest of the field pooled comes out at p = 0.00002 on a Fisher exact test, so this is not sampling luck. It also scrambles the pricing intuition: the cheapest model in the lineup is the second-best blind diagnostician, and the most expensive is the worst.
 
-![GPT-5.5's final message on the blind event-bus task, describing a fix in once.js with a fired guard](screenshots/05-blind-correct.png)
-
-*With no tests to check against, GPT-5.5 still puts the fix where it belongs, in `once.js` with a `fired` guard.*
-
-<!-- screenshot 5 companion (wrong side) pending: Claude Opus 4.8 trace 0bdf60aa352ffc5a01a0127e7bd2829e, which confidently rewrote bus.js and failed the pinned "unsubscribing mid-emit does not affect the current dispatch" test. Verified failing in isolation. -->
-
-
 That is the shape of the frontier right now. The gap between these models is not whether they can fix bugs. It is whether they can reason through a genuinely tricky bug with nothing to check their answer against, and you only pay for that gap when no test can tell the model it is wrong. If your pipeline gives agents a failing test to iterate against, the $0.018 model and the $0.144 model produce the same outcome, and the discriminating case is rare enough that we had to engineer it on purpose.
 
 ## What prompt caching does to the bill
