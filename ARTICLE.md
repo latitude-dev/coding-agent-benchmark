@@ -10,6 +10,14 @@ Each task is a real, small library with one planted bug and a test suite that fa
 
 The agent loop is deliberately plain: Vercel AI SDK, four tools (list files, read file, write file, run tests), a 24-step budget, default settings for every model. Every run streams into Latitude tagged with its model, task, and trial, the model id doubles as the user id, and the run's outcome is pushed back onto its trace as a score, so every claim in this post is a query, not a recollection. Cost is Latitude's per-trace figure, priced from models.dev rates, which matters for a reason the caching section gets into.
 
+![Latitude sessions list of benchmark runs tagged coding-benchmark and mode:blind, with duration, cost, and model columns](screenshots/01-traces-list.png)
+
+*Every benchmark run lands in Latitude as a tagged session. The rest of this post is queries over this list.*
+
+![A single benchmark run in Latitude showing its tags, seventeen spans, and token and cost totals](screenshots/02-single-run.png)
+
+*One run up close: the tags that identify it, the spans of agent activity, and its token and cost totals.*
+
 ## When the agent can run the tests
 
 All five models solved 100 percent of the runs they attempted, on both tiers. Multi-file bugs did not slow anyone down. Out of 2,204 tool calls in the benchmark there was not a single malformed call, wrong tool, or bad path, and not one model ever touched a test file. Whether these models can use tools correctly is simply no longer an interesting question.
@@ -26,6 +34,10 @@ What varied was the bill. Cost per solved task on the hard tier:
 Claude Fable 5 is missing from this table because it refused 16 of its 18 hard-tier runs, too few solves to price fairly, for a reason that gets its own section below. On the easy tier it solved all 23 runs it attempted, at $0.20 each with a 29-second median, still the slowest and priciest of the field.
 
 That is an 8x spread for identical outcomes. Moving from single-file to multi-file bugs roughly doubled Opus's cost per solve while barely moving Codex's, which ran about a penny on the easy tier and under two cents on the hard. When every model gets you the same green checkmark, paying flagship prices for routine fixes is pure waste.
+
+![Latitude users view showing the five models as users, each with a session count and total cost](screenshots/03-models-as-users.png)
+
+*Each run reports its model id as the user id, so Latitude's per-user view becomes a per-model scoreboard. The cost column carries the whole spread: $1.16 of Codex traffic against $10.68 of Fable for the same benchmark.*
 
 ## When the tests are hidden
 
@@ -64,6 +76,13 @@ The first pass ran every blind task three times per model, and this bug was the 
 | Claude Opus 4.8 | 3/13 |
 
 GPT-5.5 against the rest of the field pooled comes out at p = 0.00002 on a Fisher exact test, so this is not sampling luck. It also scrambles the pricing intuition: the cheapest model in the lineup is the second-best blind diagnostician, and the most expensive is the worst.
+
+![GPT-5.5's final message on the blind event-bus task, describing a fix in once.js with a fired guard](screenshots/05-blind-correct.png)
+
+*With no tests to check against, GPT-5.5 still puts the fix where it belongs, in `once.js` with a `fired` guard.*
+
+<!-- screenshot 5 companion (wrong side) pending: Claude Opus 4.8 trace 0bdf60aa352ffc5a01a0127e7bd2829e, which confidently rewrote bus.js and failed the pinned "unsubscribing mid-emit does not affect the current dispatch" test. Verified failing in isolation. -->
+
 
 That is the shape of the frontier right now. The gap between these models is not whether they can fix bugs. It is whether they can reason through a genuinely tricky bug with nothing to check their answer against, and you only pay for that gap when no test can tell the model it is wrong. If your pipeline gives agents a failing test to iterate against, the $0.018 model and the $0.144 model produce the same outcome, and the discriminating case is rare enough that we had to engineer it on purpose.
 
