@@ -1,0 +1,8 @@
+{
+  "name": "json-patch",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "name": "csv-import",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  }
+}
