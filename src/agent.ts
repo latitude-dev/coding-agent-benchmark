@@ -17,6 +17,7 @@ export type RunResult = {
   model: string
   task: string
   trial: number
+  mode: RunMode
   status: 'ok' | 'agent_error'
   traceId: string | null
   solved: boolean
@@ -35,7 +36,8 @@ export type RunResult = {
   error?: string
 }
 
-const INSTRUCTIONS = `You are a coding agent working in a small JavaScript project.
+const INSTRUCTIONS = {
+  oracle: `You are a coding agent working in a small JavaScript project.
 The project has a test suite that currently fails because of a bug in the source code.
 Your job is to find the bug and fix it so that every test passes.
 
@@ -43,7 +45,20 @@ Rules:
 - Explore with list_files and read_file before changing anything.
 - Fix the source code. Do not modify test files; they define the expected behavior.
 - Use run_tests to check your work. Keep going until all tests pass or you are certain you cannot fix it.
-- When the tests pass, reply with a one-paragraph summary of the bug and your fix.`
+- When the tests pass, reply with a one-paragraph summary of the bug and your fix.`,
+  blind: `You are a coding agent working in a small JavaScript project.
+The project has a bug, described in the report below. The test suite is not available in
+this workspace, and there is no way to execute the code; a hidden test suite will verify
+your fix afterward. Work from the report and the source alone.
+
+Rules:
+- Explore with list_files and read_file, and reason carefully about the code before changing anything.
+- Fix the root cause of the reported behavior in the source code.
+- Change as little as possible; unrelated edits risk failing the hidden suite.
+- When you are confident in the fix, reply with a one-paragraph summary of the bug and your fix.`,
+} as const
+
+export type RunMode = keyof typeof INSTRUCTIONS
 
 function tokenCount(value: unknown): number {
   if (typeof value === 'number') return value
@@ -82,9 +97,11 @@ export async function runOne(
   task: Task,
   trial: number,
   runId: string,
+  mode: RunMode = 'oracle',
 ): Promise<RunResult> {
-  const sandbox = await Sandbox.create(task.dir)
-  const { tools, stats } = createTools(sandbox)
+  const oracle = mode === 'oracle'
+  const sandbox = await Sandbox.create(task.dir, { includeTests: oracle })
+  const { tools, stats } = createTools(sandbox, { withRunTests: oracle })
   const startedAt = Date.now()
   let firstActionMs: number | null = null
   let traceId: string | null = null
@@ -94,6 +111,7 @@ export async function runOne(
     model: spec.key,
     task: task.id,
     trial,
+    mode,
   }
 
   try {
@@ -103,7 +121,7 @@ export async function runOne(
         traceId = trace.getActiveSpan()?.spanContext().traceId ?? null
         return generateText({
           model: spec.model(),
-          instructions: INSTRUCTIONS,
+          instructions: INSTRUCTIONS[mode],
           prompt: task.prompt,
           tools,
           stopWhen: stepCountIs(24),
@@ -116,7 +134,7 @@ export async function runOne(
       },
       {
         metadata: { ...base, benchmark: 'coding-agent-v1' },
-        tags: [`model:${spec.key}`, `task:${task.id}`, `trial:${trial}`, 'coding-benchmark'],
+        tags: [`model:${spec.key}`, `task:${task.id}`, `trial:${trial}`, `mode:${mode}`, 'coding-benchmark'],
         sessionId: runId,
         userId: spec.key,
       },

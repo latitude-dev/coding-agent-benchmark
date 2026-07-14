@@ -10,7 +10,7 @@ export type ToolStats = {
   testFileWrites: number
 }
 
-export function createTools(sandbox: Sandbox) {
+export function createTools(sandbox: Sandbox, { withRunTests = true } = {}) {
   const stats: ToolStats = { calls: 0, errors: 0, testFileWrites: 0 }
 
   const track = async <T>(fn: () => Promise<T>): Promise<T> => {
@@ -63,5 +63,9 @@ export function createTools(sandbox: Sandbox) {
     }),
   }
 
+  if (!withRunTests) {
+    const { run_tests: _dropped, ...blind } = tools
+    return { tools: blind as Partial<typeof tools>, stats }
+  }
   return { tools, stats }
 }

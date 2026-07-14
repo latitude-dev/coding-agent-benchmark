@@ -17,10 +17,13 @@ export class Sandbox {
     this.fixtureDir = fixtureDir
   }
 
-  static async create(taskDir: string): Promise<Sandbox> {
+  static async create(taskDir: string, { includeTests = true } = {}): Promise<Sandbox> {
     const fixtureDir = path.join(taskDir, 'workspace')
     const root = await mkdtemp(path.join(tmpdir(), 'bench-'))
-    await cp(fixtureDir, root, { recursive: true })
+    await cp(fixtureDir, root, {
+      recursive: true,
+      filter: (source) => includeTests || !isTestFile(path.basename(source)),
+    })
     return new Sandbox(root, fixtureDir)
   }
 

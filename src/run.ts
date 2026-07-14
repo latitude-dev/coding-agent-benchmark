@@ -38,8 +38,10 @@ async function main() {
       tasks: { type: 'string' },
       trials: { type: 'string', default: '3' },
       concurrency: { type: 'string', default: '3' },
+      blind: { type: 'boolean', default: false },
     },
   })
+  const mode = values.blind ? ('blind' as const) : ('oracle' as const)
 
   const specs = resolveModels(values.models.split(',').map((s) => s.trim()))
   const tasks = await loadTasks(values.tasks?.split(',').map((s) => s.trim()))
@@ -74,7 +76,7 @@ async function main() {
       const item = queue[cursor++]
       const spec = specs[item.specIndex]
       const runId = randomUUID()
-      const result = await runOne(spec, item.task, item.trial, runId)
+      const result = await runOne(spec, item.task, item.trial, runId, mode)
       await appendFile(RESULTS_FILE, JSON.stringify(result) + '\n')
       completed++
       const flag = result.status !== 'ok' ? ` ERROR(${result.error})` : result.solved ? ' solved' : ' unsolved'
