@@ -26,7 +26,7 @@ Capture list for the published version of ARTICLE.md. Each entry notes the secti
 
 ## Placed in: The model that didn't show up
 
-📸 **Screenshot 8, the empty reply.** Trace detail of a refused Fable 5 run (filter by tag `model:claude-fable-5`, look for traces with 4 spans and single-digit output tokens; `17-json-patch` trial 1 is a clean example). The conversation panel shows the ordinary bug report going in and an empty assistant turn with `finish_reason: content_filter` coming back, nine output tokens. Caption: "A JSON Patch bug report goes in. Nine tokens and a content filter come back."
+📸 **Screenshot 8, the empty reply.** Trace detail of a refused Fable 5 run (filter by tag `model:claude-fable-5`, look for traces with 4 spans and single-digit output tokens; `17-json-patch` trial 1 is a clean example). The conversation panel shows the ordinary bug report going in and an empty assistant turn coming back with nine output tokens and Anthropic's refusal stop reason (shown as content_filter in the trace). Caption: "A JSON Patch bug report goes in. Nine tokens and a content filter come back."
 
 📸 **Screenshot 9, the volatility.** Traces list filtered by tag `model:claude-fable-5`, sorted by start time ascending, cropped to the 10:27 to 10:36 UTC stretch where refused runs (tiny token counts, 4 spans) sit interleaved with full runs and then abruptly stop. If the timeline chart on the project overview shows the same window, that works too. Caption: "Nine minutes of traffic: refusals in the first burst, eighteen clean runs in the second. Same prompts."
 
