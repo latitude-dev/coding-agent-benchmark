@@ -15,35 +15,43 @@ async function main() {
   const lines = (await readFile(RESULTS_FILE, 'utf8')).trim().split('\n')
   const results: RunResult[] = lines.map((l) => JSON.parse(l))
 
-  const byModel = new Map<string, RunResult[]>()
-  for (const r of results) {
-    byModel.set(r.model, [...(byModel.get(r.model) ?? []), r])
-  }
+  const tierOf = (r: RunResult) =>
+    r.mode === 'blind' ? 'blind' : Number(r.task.slice(0, 2)) <= 12 ? 'easy' : 'hard'
 
-  const rows = []
-  for (const [model, runs] of byModel) {
-    const ok = runs.filter((r) => r.status === 'ok')
-    const errored = runs.length - ok.length
-    const solved = ok.filter((r) => r.solved)
-    const totalCost = ok.reduce((sum, r) => sum + r.costUsd, 0)
-    const totalCalls = ok.reduce((sum, r) => sum + r.toolCalls, 0)
-    const totalToolErrors = ok.reduce((sum, r) => sum + r.toolErrors + r.malformedCalls, 0)
-    rows.push({
-      model,
-      runs: ok.length,
-      errored,
-      solveRate: ok.length ? `${((solved.length / ok.length) * 100).toFixed(0)}%` : 'n/a',
-      costPerSolved: solved.length ? `$${(totalCost / solved.length).toFixed(3)}` : 'n/a',
-      totalCost: `$${totalCost.toFixed(2)}`,
-      medianWallS: (median(ok.map((r) => r.wallMs)) / 1000).toFixed(1),
-      medianFirstActionS: (median(ok.filter((r) => r.firstActionMs !== null).map((r) => r.firstActionMs!)) / 1000).toFixed(1),
-      medianSteps: median(ok.map((r) => r.steps)).toFixed(0),
-      toolErrorRate: totalCalls ? `${((totalToolErrors / totalCalls) * 100).toFixed(1)}%` : 'n/a',
-      tampered: ok.filter((r) => r.tamper).length,
-    })
-  }
+  for (const tier of ['easy', 'hard', 'blind']) {
+    const inTier = results.filter((r) => r.status === 'ok' && tierOf(r) === tier)
+    if (inTier.length === 0) continue
 
-  console.table(rows)
+    const byModel = new Map<string, RunResult[]>()
+    for (const r of inTier) {
+      byModel.set(r.model, [...(byModel.get(r.model) ?? []), r])
+    }
+
+    const rows = []
+    for (const [model, runs] of byModel) {
+      const attempted = runs.filter((r) => r.finishReason !== 'content-filter')
+      const refused = runs.length - attempted.length
+      const solved = attempted.filter((r) => r.solved)
+      const totalCost = runs.reduce((sum, r) => sum + r.costUsd, 0)
+      const totalCalls = attempted.reduce((sum, r) => sum + r.toolCalls, 0)
+      const totalToolErrors = attempted.reduce((sum, r) => sum + r.toolErrors + r.malformedCalls, 0)
+      rows.push({
+        model,
+        runs: runs.length,
+        refused,
+        solveRate: attempted.length ? `${((solved.length / attempted.length) * 100).toFixed(0)}%` : 'n/a',
+        costPerSolved: solved.length ? `$${(totalCost / solved.length).toFixed(3)}` : 'n/a',
+        totalCost: `$${totalCost.toFixed(2)}`,
+        medianWallS: attempted.length ? (median(attempted.map((r) => r.wallMs)) / 1000).toFixed(1) : 'n/a',
+        medianSteps: attempted.length ? median(attempted.map((r) => r.steps)).toFixed(0) : 'n/a',
+        toolErrorRate: totalCalls ? `${((totalToolErrors / totalCalls) * 100).toFixed(1)}%` : 'n/a',
+        tampered: attempted.filter((r) => r.tamper).length,
+      })
+    }
+
+    console.log(`\n=== ${tier.toUpperCase()} tier`)
+    console.table(rows.sort((a, b) => a.model.localeCompare(b.model)))
+  }
 }
 
 main().catch((error) => {

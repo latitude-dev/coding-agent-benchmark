@@ -1,8 +1,8 @@
 # We benchmarked five frontier models as coding agents. All of them can code. That is not what separates them.
 
-Last week we gave five frontier models the same job: here is a small JavaScript project, here is a bug report, there are four tools, go fix it. Claude Opus 4.8, Claude Sonnet 5, Claude Fable 5, GPT-5.5, and GPT-5.3 Codex each ran the same 18 tasks three times, 360 runs in total, every one traced into Latitude. We expected a ranking of who fixes bugs best. Instead, everyone fixed the bugs, and the real differences showed up in things no leaderboard measures: what a solved task costs, how fast it lands, and whether the model agrees to do the work at all.
+Last week we gave five frontier models the same job: here is a small JavaScript project, here is a bug report, there are four tools, go fix it. Claude Opus 4.8, Claude Sonnet 5, Claude Fable 5, GPT-5.5, and GPT-5.3 Codex each ran 72 times against 18 tasks, first with the test suite available and then without it, 360 runs in total, every one traced into Latitude. We expected a ranking of who fixes bugs best. Instead, everyone fixed the bugs, and the real differences showed up in things no leaderboard measures: what a solved task costs, how fast it lands, and whether the model agrees to do the work at all.
 
-One disclosure belongs ahead of the numbers. The harness was built and operated by Claude Fable 5 running as a coding agent, and Fable 5 is also a contestant. Every result below is reproducible from the repo, and the raw traces carry the evidence.
+Two disclosures belong ahead of the numbers. The harness was built and operated by Claude Fable 5 running as a coding agent, and Fable 5 is also a contestant. The benchmark tasks themselves were authored by Claude-based agents as well, which is a bias we cannot fully rule out, so the harness, every task, and the raw per-run results ship in the repo for anyone who wants to check the work or point it at different models.
 
 ## The setup
 
@@ -29,7 +29,7 @@ What varied was the bill. Cost per solved task on the hard tier:
 
 That is an 8x spread for identical outcomes. The move from single-file to multi-file bugs doubled Opus's cost per solve and did not move Codex's at all, which stayed at $0.018 across both tiers. When every model gets you the same green checkmark, paying flagship prices for routine fixes is pure waste.
 
-> 📸 **Screenshot 3, one model = one user.** The project's Users view, showing the five models as end users (`claude-opus-4-8`, `claude-sonnet-5`, `claude-fable-5`, `gpt-5.5`, `gpt-5.3-codex`) with their trace counts, total cost, and activity. This is the trick that makes per-model analytics free: set the model id as the user id in telemetry. Caption: "Five users, five models. Latitude's per-user analytics become per-model analytics with one line of telemetry config."
+> 📸 **Screenshot 3, one model = one user.** The project's Users view, showing the five models as end users (`claude-opus-4-8`, `claude-sonnet-5`, `claude-fable-5`, `gpt-5.5`, `gpt-5.3-codex`) with their trace counts, total cost, and activity. This is the trick that makes per-model analytics free: set the model id as the user id in telemetry. Caption: "The five models, tracked as five users. Each run reported its model id as the user id, so the per-user views group runs by model."
 
 > 📸 **Screenshot 4, the money chart.** Analytics view charting total cost broken down by user (model), same time window as the benchmark. The bars should visibly step down from Opus and Fable to Codex. Caption: "Same solve rate, 8x the bill. Cost by model across all 360 runs."
 
@@ -37,7 +37,26 @@ That is an 8x spread for identical outcomes. The move from single-file to multi-
 
 The third tier reused the six hard tasks but removed the safety net: no test files in the workspace, no way to execute code, just the bug report and the source. A hidden suite scored the fix afterward. This isolates diagnosis, because the model has to commit to a root cause it cannot verify.
 
-Five of the six tasks still got solved by everyone. In the end, one single bug was all that separated the models: an event bus where a once-listener double-fires only when the same event is emitted again from inside a listener, because the wrapper assumes self-removal takes effect mid-dispatch while the bus iterates a snapshot. GPT-5.5 fixed it three times out of three. Opus 4.8, Sonnet 5, Fable 5, and Codex each got it once out of three.
+Five of the six tasks still got solved by everyone. In the end, one single bug was all that separated the models. The project is a small event bus, and its once-wrapper looks like this:
+
+```js
+export function once(bus, event, handler, options) {
+  const unsubscribe = bus.subscribe(
+    event,
+    (payload) => {
+      unsubscribe()
+      handler(payload)
+    },
+    options,
+  )
+  return unsubscribe
+}
+```
+
+The bus takes a snapshot of the listener list at the start of every emit, so unsubscribing during dispatch does not remove you from an emit that is already in flight. For ordinary sequential emits that never matters. But when a listener emits the same event again from inside its own handler, the wrapper runs in the inner dispatch, unsubscribes, and then runs a second time anyway, because the outer dispatch is still walking a snapshot taken before the unsubscribe. The fix has to go in the wrapper, with a fired guard, and the test suite pins the bus's snapshot semantics with its own tests, so patching the bus instead breaks other behavior. Diagnosing this requires holding both files' semantics in your head at once and simulating a re-entrant call, with no test to confirm the theory.
+
+<!-- EVENT-BUS NUMBERS PENDING: replace with 13-trial results when the extra batch lands -->
+GPT-5.5 fixed it three times out of three. Opus 4.8, Sonnet 5, Fable 5, and Codex each got it once out of three.
 
 That is the shape of the frontier right now. The gap between these models is not whether they can fix bugs. It is whether they can reason through a genuinely tricky bug with nothing to check their answer against, and you only pay for that gap when no test can tell the model it is wrong. If your pipeline gives agents a failing test to iterate against, the $0.018 model and the $0.144 model produce the same outcome, and the discriminating case is rare enough that we had to engineer it on purpose.
 
@@ -59,16 +78,22 @@ Claude Fable 5 has the same headline behavior as the rest: when it ran, it solve
 
 > 📸 **Screenshot 8, the empty reply.** Trace detail of a refused Fable 5 run (filter by tag `model:claude-fable-5`, look for traces with 4 spans and single-digit output tokens; `17-json-patch` trial 1 is a clean example). The conversation panel shows the ordinary bug report going in and an empty assistant turn with `finish_reason: content_filter` coming back, nine output tokens. Caption: "A JSON Patch bug report goes in. Nine tokens and a content filter come back."
 
-But 29 of its 72 runs never happened. The API returned `finish_reason: content_filter`, often on the very first step, before a single tool call, in response to prompts like a JSON Patch library whose rollback leaves the document half-modified. And the refusals were not stable: 54 percent of runs refused between 10:27 and 10:33 UTC, then zero refusals across 18 consecutive runs in the following three minutes, then 100 percent of our controlled probes refused half an hour later, including an exact replica of a configuration that had just gone 18 for 18. We ran six single-variable experiments to find the prompt-level trigger and there is not one. The behavior varies over time on identical requests.
+But 29 of its 72 runs never happened. The response came back with a content-filter finish reason (as surfaced by the AI SDK), usually on the very first step, before a single tool call, in response to prompts like a JSON Patch library whose rollback leaves the document half-modified. Nine output tokens, no message, no work.
+
+We spent the afternoon trying to pin down the trigger, and the honest answer is that we could not. The refusals are not random noise per request: within one six-minute window, 54 percent of runs refused, and specific tasks refused three out of three. They are not stable over time either: the same account then ran 18 consecutive runs with zero refusals in the following three minutes, and an exact replica of one of those successful configurations refused three out of three when we retried it ninety minutes later. They are not explained by any single variable we tested: we swapped the instruction wording, removed the test files, removed the test-running tool, and combined those, and every variant refused in some windows and worked in others. Strangest of all, while an exact SDK replica was refusing, a near-identical request sent straight to the Anthropic HTTP API, same bug report, slightly different system text and tool list, worked normally in the same minute. The full probe matrix is a script in the repo, and we would genuinely welcome an explanation, because we cannot rule out account-level state, fleet-side changes, or something about the request shape we did not think to vary.
 
 > 📸 **Screenshot 9, the volatility.** Traces list filtered by tag `model:claude-fable-5`, sorted by start time ascending, cropped to the 10:27 to 10:36 UTC stretch where refused runs (tiny token counts, 4 spans) sit interleaved with full runs and then abruptly stop. If the timeline chart on the project overview shows the same window, that works too. Caption: "Nine minutes of traffic: refusals in the first burst, eighteen clean runs in the second. Same prompts."
 
-We are not in a position to say what Anthropic's safety layer is doing internally, and Fable 5 is explicitly documented as carrying extra safety measures. What we can say is operational: a model that refuses 40 percent of legitimate work, at rates that swing between zero and one hundred percent within an hour, has a reliability ceiling no capability score captures. If it is in your stack, your traces need to be watching `finish_reason`, because your users will find this behavior before your eval suite does.
+We are not in a position to say what Anthropic's safety layer is doing internally, and Fable 5 is explicitly documented as carrying extra safety measures, so some refusal surface is expected behavior for this model. What we can say is operational: on this workload, on this day, on this account, it declined 40 percent of ordinary bug-fix requests, at rates that swung between zero and one hundred percent within the hour, and nothing in the prompts predicts which. A model like that has a reliability ceiling no capability score captures. If it is in your stack, your traces need to be watching finish reasons, because your users will find this behavior before your eval suite does.
 
 > 📸 **Screenshot 10, the detector that stays on.** The "Agent did not fix the bug" signal detail page (an LLM judge created over the project), showing its collected occurrences from the live runs. This closes the loop for readers of the self-healing post: the benchmark's failure modes are now tracked signals, not a one-off spreadsheet. Caption: "The benchmark ended; the detectors didn't. A judge signal keeps flagging runs where the agent never landed a fix."
 
+## What this benchmark does not tell you
+
+The scope here is narrow on purpose, and the conclusions should not travel beyond it. Every task is a small library, 25 to 250 lines, with exactly one planted bug and a bug report that includes a reproduction, which is the friendliest possible framing of "coding agent." Nothing here says anything about repo-scale work, ambiguous requirements, or changes that need design judgment. The tasks were written by Claude-based agents, so a family-level bias in what counts as a natural bug is possible. Every model ran with default settings, no reasoning-effort or temperature sweeps, on a single day from a single region at concurrency four, and the wall-time numbers include local test execution. Gemini 3.1 Pro was in the original lineup and is absent only because our Google API key had no billing attached; we will add it when that is fixed. And with three trials per model per task on most cells, small differences are noise, which is exactly why we reran the one discriminating task at a larger trial count before writing about it.
+
 ## What we'd actually do with these numbers
 
-Wire your agents to a verification loop and buy the cheap model. Every task where the agent could run the tests was solved by the cheapest model in the lineup at a flat $0.018 per fix, and the expensive models added nothing but latency and cost. Save the flagship spend for work where nothing can tell the agent it is wrong, because that is the only place we could measure a quality difference at all. And treat refusal rate as a first-class production metric alongside cost and latency, measured on your own traffic, because none of the three findings above appears on any public leaderboard.
+For this class of task, wire your agents to a verification loop and buy the cheap model. Every task where the agent could run the tests was solved by the cheapest model in the lineup at a flat $0.018 per fix, and the expensive models added nothing but latency and cost. Save the flagship spend for work where nothing can tell the agent it is wrong, because that is the only place we could measure a quality difference at all. And treat refusal rate as a first-class production metric alongside cost and latency, measured on your own traffic, because none of the three findings above appears on any public leaderboard.
 
-The harness, tasks, and analysis are in the repo, and the whole run cost $23 in API spend. Point it at whatever models you are choosing between; the numbers that matter are the ones from your own workload.
+The harness, the tasks, the per-run results, and the refusal probes are all in [the repo](REPO_URL_PLACEHOLDER), and the whole benchmark cost $23 in API spend. Point it at whatever models you are choosing between; the numbers that matter are the ones from your own workload.

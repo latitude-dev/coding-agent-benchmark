@@ -19,7 +19,9 @@ pnpm bench -- --models claude-sonnet-5 --tasks 01-interval-merge --trials 1
 pnpm report                         # aggregate results/results.jsonl into a table
 ```
 
-Node 24+ is required (the harness is TypeScript run directly via type stripping).
+Node 24+ is required (the harness is TypeScript run directly via type stripping). The published results were produced with `ai@7.0.26`, `@ai-sdk/otel@1.0.26`, `@latitude-data/telemetry@3.6.0`, and Node 25.9.0 on 2026-07-14, with default model settings (no reasoning-effort or temperature overrides) at concurrency 4.
+
+The raw run data behind the writeup is committed at `results/results.jsonl`, one JSON object per run, including trace ids that link each row to its Latitude trace. `src/refusal-probes.ts` reproduces the controlled experiments around Claude Fable 5's content-filter refusals (`node --env-file=.env src/refusal-probes.ts`); its behavior varies over time, which is the point.
 
 ## What gets measured
 
