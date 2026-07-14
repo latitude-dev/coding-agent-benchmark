@@ -47,7 +47,11 @@ export function once(bus, event, handler, options) {
 }
 ```
 
-The bus takes a snapshot of the listener list at the start of every emit, so unsubscribing during dispatch does not remove you from an emit that is already in flight. For ordinary sequential emits that never matters. But when a listener emits the same event again from inside its own handler, the wrapper runs in the inner dispatch, unsubscribes, and then runs a second time anyway, because the outer dispatch is still walking a snapshot taken before the unsubscribe. The fix has to go in the wrapper, with a fired guard, and the test suite pins the bus's snapshot semantics with its own tests, so patching the bus instead breaks other behavior. Diagnosing this requires holding both files' semantics in your head at once and simulating a re-entrant call, with no test to confirm the theory.
+When the bus fires an event it first copies its list of listeners, then calls them one at a time from that copy. `once` adds a listener that removes itself and then runs your handler, so in normal use you are called a single time and unsubscribed before the next event arrives.
+
+It breaks only when a handler fires the same event again while it is still running. That nested fire begins before the first one has finished. The wrapper unsubscribes during it, but the first fire is still working through the copy it took at the start, back when the wrapper was still on the list, so the handler runs a second time and a listener meant to fire once fires twice.
+
+The fix goes in the wrapper, a flag that remembers it already ran, and not in the bus, because copying the listener list first is deliberate and the tests check for it. Seeing the bug at all means holding two files in your head and mentally running a function that calls itself, with no test in blind mode to tell you whether you got it right.
 
 The first pass ran every blind task three times per model, and this bug was the only one where anyone failed, so we reran it at thirteen trials per model to make sure we were looking at a real difference and not a coin flip:
 
