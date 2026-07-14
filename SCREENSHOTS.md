@@ -4,17 +4,17 @@ Capture list for the published version of ARTICLE.md. Each entry notes the secti
 
 ## Placed in: The setup
 
-📸 **Screenshot 1, the raw material.** Traces list of the Model Benchmark project, filtered by tag `coding-benchmark`, sorted by most recent. Make sure the visible columns include the tag chips (`model:…`, `task:…`, `trial:…`, `mode:…`), token counts, and cost, with enough rows to convey the 360-run scale. Caption: "Every benchmark run is a tagged trace. The rest of this post is queries over this list."
+📸 **Screenshot 1, the raw material.** Traces list of the Model Benchmark project, filtered by tag `coding-benchmark`, sorted by most recent. Make sure the visible columns include the tag chips (`model:…`, `task:…`, `trial:…`, `mode:…`), token counts, and cost, with enough rows to convey the 410-run scale. Caption: "Every benchmark run is a tagged trace. The rest of this post is queries over this list."
 
 📸 **Screenshot 2, one run up close.** Trace detail of any solved oracle run (a GPT-5.3 Codex run on `01-interval-merge` works well): the span tree showing the agent loop of LLM calls and tool calls, with the conversation panel open on the final summary message. Caption: "One run: read the files, patch the source, run the tests, summarize the fix. Fifteen spans, twelve seconds."
 
-## Placed in: With a test suite in reach, everybody solves everything
+## Placed in: When the agent can run the tests
 
 📸 **Screenshot 3, one model = one user.** The project's Users view, showing the five models as end users (`claude-opus-4-8`, `claude-sonnet-5`, `claude-fable-5`, `gpt-5.5`, `gpt-5.3-codex`) with their trace counts, total cost, and activity. This is the trick that makes per-model analytics free: set the model id as the user id in telemetry. Caption: "The five models, tracked as five users. Each run reported its model id as the user id, so the per-user views group runs by model."
 
-📸 **Screenshot 4, the money chart.** Analytics view charting total cost broken down by user (model), same time window as the benchmark. The bars should visibly step down from Opus and Fable to Codex. Caption: "Same solve rate, 8x the bill. Cost by model across all 360 runs."
+📸 **Screenshot 4, the money chart.** Analytics view charting total cost broken down by user (model), same time window as the benchmark. The bars should visibly step down from Opus and Fable to Codex. Caption: "Same solve rate, 8x the bill. Cost by model across all 410 runs."
 
-## Placed in: Take the tests away and one bug sorts the field
+## Placed in: When the tests are hidden
 
 📸 **Screenshot 5, right and wrong, side by side.** Two trace details on `14-event-bus` in blind mode: a GPT-5.5 run (solved) next to a failed run from any other model, each open on the final assistant message where the model commits to its diagnosis. The failed one names a plausible but wrong root cause; that contrast is the whole point. Filter the traces list by tags `task:14-event-bus` + `mode:blind` to find them. Caption: "Same bug report, no tests to check against. One model reasons its way to the re-entrancy bug; the other commits to a plausible wrong fix."
 
@@ -24,7 +24,7 @@ Capture list for the published version of ARTICLE.md. Each entry notes the secti
 
 📸 **Screenshot 7, caching in the cost.** A GPT-5.3 Codex trace detail with the token and cost panel visible, showing the split between full-price input tokens and cache-read tokens (for example 2,664 input against 2,048 cache reads on a single run). Caption: "Latitude prices cached tokens at the discounted rate. On the OpenAI models that was more than half the input by the end of the run."
 
-## Placed in: The model that didn't show up
+## Placed in: What happened with Claude Fable 5
 
 📸 **Screenshot 8, the empty reply.** Trace detail of a refused Fable 5 run (filter by tag `model:claude-fable-5`, look for traces with 4 spans and single-digit output tokens; `17-json-patch` trial 1 is a clean example). The conversation panel shows the ordinary bug report going in and an empty assistant turn coming back with nine output tokens and Anthropic's refusal stop reason (shown as content_filter in the trace). Caption: "A JSON Patch bug report goes in. Nine tokens and a content filter come back."
 
