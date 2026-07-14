@@ -71,9 +71,15 @@ async function rawApiProbe(prompt: string) {
       ],
     }),
   })
-  const body = (await res.json()) as { stop_reason?: string; content?: Array<{ type: string }> }
+  const body = (await res.json()) as {
+    stop_reason?: string
+    stop_details?: { category?: string | null }
+    content?: Array<{ type: string }>
+  }
+  // stop_details.category names the safety classifier that fired; production
+  // refusals on this benchmark all reported category "cyber".
   console.log(
-    `[${new Date().toISOString()}] raw Anthropic API, blind-style: http=${res.status} stop_reason=${body.stop_reason} blocks=${(body.content ?? []).map((b) => b.type).join(',') || 'none'}`,
+    `[${new Date().toISOString()}] raw Anthropic API, blind-style: http=${res.status} stop_reason=${body.stop_reason} category=${body.stop_details?.category ?? 'n/a'} blocks=${(body.content ?? []).map((b) => b.type).join(',') || 'none'}`,
   )
 }
 
