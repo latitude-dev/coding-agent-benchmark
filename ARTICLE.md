@@ -10,7 +10,7 @@ Each task is a real, small library with one planted bug and a test suite that fa
 
 The agent loop is deliberately plain: Vercel AI SDK, four tools (list files, read file, write file, run tests), a 24-step budget, default settings for every model. Pricing comes from models.dev. Each run streams into Latitude tagged with its model, task, and trial, the model id doubles as the user id, and the run's outcome is pushed back onto its trace as a score, so every claim in this post is a query, not a recollection.
 
-## With a test suite in reach, everybody solves everything
+## When the agent can run the tests
 
 All five models solved 100 percent of the runs they attempted, on both tiers. Multi-file bugs did not slow anyone down. Out of 2,204 tool calls in the benchmark there was not a single malformed call, wrong tool, or bad path, and not one model ever touched a test file. Whether these models can use tools correctly is simply no longer an interesting question.
 
@@ -27,7 +27,7 @@ Claude Fable 5 is not in this table for a reason that gets its own section below
 
 That is an 8x spread for identical outcomes. The move from single-file to multi-file bugs doubled Opus's cost per solve and did not move Codex's at all, which stayed at $0.018 across both tiers. When every model gets you the same green checkmark, paying flagship prices for routine fixes is pure waste.
 
-## Take the tests away and one bug sorts the field
+## When the tests are hidden
 
 The third tier reused the six hard tasks but removed the safety net: no test files in the workspace, no way to execute code, just the bug report and the source. A hidden suite scored the fix afterward. This isolates diagnosis, because the model has to commit to a root cause it cannot verify.
 
@@ -63,7 +63,7 @@ GPT-5.5 against the rest of the field pooled comes out at p = 0.00002 on a Fishe
 
 That is the shape of the frontier right now. The gap between these models is not whether they can fix bugs. It is whether they can reason through a genuinely tricky bug with nothing to check their answer against, and you only pay for that gap when no test can tell the model it is wrong. If your pipeline gives agents a failing test to iterate against, the $0.018 model and the $0.144 model produce the same outcome, and the discriminating case is rare enough that we had to engineer it on purpose.
 
-## The observability layer caught our own cost bug
+## The cost bug in our own harness
 
 Midway through, we cross-checked the harness's cost accounting against Latitude's independent per-trace cost tracking. The Anthropic numbers matched to the cent. The OpenAI numbers did not: our harness said GPT-5.3 Codex had spent $0.65 when Latitude said $0.49.
 
@@ -85,7 +85,7 @@ Fable 5 is explicitly documented as carrying extra safety measures, so some refu
 
 The scope here is narrow on purpose, and the conclusions should not travel beyond it. Every task is a small library, 25 to 250 lines, with exactly one planted bug and a bug report that includes a reproduction, which is the friendliest possible framing of "coding agent." Nothing here says anything about repo-scale work, ambiguous requirements, or changes that need design judgment. The tasks were written by Claude-based agents, so a family-level bias in what counts as a natural bug is possible. Every model ran with default settings, no reasoning-effort or temperature sweeps, on a single day from a single region at concurrency four, and the wall-time numbers include local test execution. Gemini 3.1 Pro was in the original lineup and is absent only because our Google API key had no billing attached; we will add it when that is fixed. And with three trials per model per task on most cells, small differences are noise, which is exactly why we reran the one discriminating task at a larger trial count before writing about it.
 
-## What we'd actually do with these numbers
+## What we'd do with these numbers
 
 For this class of task, wire your agents to a verification loop and buy the cheap model. Every task where the agent could run the tests was solved by the cheapest model in the lineup at a flat $0.018 per fix, and the expensive models added nothing but latency and cost. Save the flagship spend for work where nothing can tell the agent it is wrong, because that is the only place we could measure a quality difference at all. And treat refusal rate as a first-class production metric alongside cost and latency, measured on your own traffic, because none of the three findings above appears on any public leaderboard.
 
