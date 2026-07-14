@@ -1,0 +1,8 @@
+{
+  "name": "markdown-toc",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  }
+}

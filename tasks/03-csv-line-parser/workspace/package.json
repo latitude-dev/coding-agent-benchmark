@@ -1,0 +1,8 @@
+{
+  "name": "csv-line-parser",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  }
+}
