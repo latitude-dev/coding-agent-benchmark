@@ -24,6 +24,14 @@ export const MODELS: ModelSpec[] = [
     envKey: 'ANTHROPIC_API_KEY',
   },
   {
+    key: 'claude-fable-5',
+    label: 'Claude Fable 5',
+    provider: 'anthropic',
+    model: () => anthropic('claude-fable-5'),
+    pricing: { input: 10, output: 50, cacheRead: 1, cacheWrite: 12.5 },
+    envKey: 'ANTHROPIC_API_KEY',
+  },
+  {
     key: 'claude-sonnet-5',
     label: 'Claude Sonnet 5',
     provider: 'anthropic',
