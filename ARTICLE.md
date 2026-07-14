@@ -8,7 +8,7 @@ Two disclosures belong ahead of the numbers. The harness was built and operated 
 
 Each task is a real, small library with one planted bug and a test suite that fails because of it. The easy tier is twelve single-file bugs, such as an LRU cache that forgets to refresh recency on reads. The hard tier is six multi-file projects where the defect is a broken contract between modules, such as a pricing module that returns a discount fraction while the totals module subtracts it as cents. A run counts as solved only when the full suite passes against pristine test files, so a model that edits a test to force a pass gets caught and flagged.
 
-The agent loop is deliberately plain: Vercel AI SDK, four tools (list files, read file, write file, run tests), a 24-step budget, default settings for every model. Pricing comes from models.dev. Each run streams into Latitude tagged with its model, task, and trial, the model id doubles as the user id, and the run's outcome is pushed back onto its trace as a score, so every claim in this post is a query, not a recollection.
+The agent loop is deliberately plain: Vercel AI SDK, four tools (list files, read file, write file, run tests), a 24-step budget, default settings for every model. Every run streams into Latitude tagged with its model, task, and trial, the model id doubles as the user id, and the run's outcome is pushed back onto its trace as a score, so every claim in this post is a query, not a recollection. Cost is Latitude's per-trace figure, priced from models.dev rates, which matters for a reason the caching section gets into.
 
 ## When the agent can run the tests
 
@@ -23,9 +23,9 @@ What varied was the bill. Cost per solved task on the hard tier:
 | GPT-5.5 | $0.070 | 19.2s |
 | Claude Opus 4.8 | $0.144 | 20.4s |
 
-Claude Fable 5 is missing from this table because it refused 16 of its 18 hard-tier runs, too few solves to price fairly, for a reason that gets its own section below. On the easy tier it solved all 23 runs it attempted, at $0.16 each with a 29-second median, still the slowest and priciest of the field.
+Claude Fable 5 is missing from this table because it refused 16 of its 18 hard-tier runs, too few solves to price fairly, for a reason that gets its own section below. On the easy tier it solved all 23 runs it attempted, at $0.20 each with a 29-second median, still the slowest and priciest of the field.
 
-That is an 8x spread for identical outcomes. The move from single-file to multi-file bugs doubled Opus's cost per solve and did not move Codex's at all, which stayed at $0.018 across both tiers. When every model gets you the same green checkmark, paying flagship prices for routine fixes is pure waste.
+That is an 8x spread for identical outcomes. Moving from single-file to multi-file bugs roughly doubled Opus's cost per solve while barely moving Codex's, which ran about a penny on the easy tier and under two cents on the hard. When every model gets you the same green checkmark, paying flagship prices for routine fixes is pure waste.
 
 ## When the tests are hidden
 
@@ -67,11 +67,9 @@ GPT-5.5 against the rest of the field pooled comes out at p = 0.00002 on a Fishe
 
 That is the shape of the frontier right now. The gap between these models is not whether they can fix bugs. It is whether they can reason through a genuinely tricky bug with nothing to check their answer against, and you only pay for that gap when no test can tell the model it is wrong. If your pipeline gives agents a failing test to iterate against, the $0.018 model and the $0.144 model produce the same outcome, and the discriminating case is rare enough that we had to engineer it on purpose.
 
-## The cost bug in our own harness
+## What prompt caching does to the bill
 
-Midway through, we cross-checked the harness's cost accounting against Latitude's independent per-trace cost tracking. The Anthropic numbers matched to the cent. The OpenAI numbers did not: our harness said GPT-5.3 Codex had spent $0.65 when Latitude said $0.49.
-
-The cause was prompt caching. OpenAI applies it transparently, and by the end of the benchmark 54 percent of Codex's input tokens and 38 percent of GPT-5.5's were cache reads billed at a tenth of the normal rate. The AI SDK reports those tokens in a field our cost function was not reading, so we were pricing them at full rate and overstating Codex's spend by a third. Claude models showed the mirror image: their cache requires explicit opt-in that our harness never configured, so they paid full price on every token. Two lessons came out of one discrepancy: provider cache defaults change agent economics materially, and a benchmark that computes its own metrics needs an independent source of truth watching it.
+Cost here is Latitude's per-trace figure, and one detail in how it prices a call turns out to matter: it counts cached input tokens at their real, discounted rate rather than the sticker price. OpenAI caches prompts automatically, and by the end of the run 54 percent of Codex's input tokens and 38 percent of GPT-5.5's were cache reads, billed at a tenth of the normal rate. Anthropic's cache has to be turned on deliberately, and these runs did not, so the Claude models paid full price on every token. Two models with nearly identical token counts can land a third apart on cost purely from what the provider cached and how it billed it. If you compare model prices from raw token counts, you are not comparing what you will actually pay, which is why every cost number here comes from Latitude's per-trace accounting rather than a token estimate.
 
 ## What happened with Claude Fable 5
 
@@ -87,6 +85,6 @@ The scope here is narrow on purpose, and the conclusions should not travel beyon
 
 ## What we'd do with these numbers
 
-For this class of task, wire your agents to a verification loop and buy the cheap model. Every task where the agent could run the tests was solved by the cheapest model in the lineup at a flat $0.018 per fix, and the expensive models added nothing but latency and cost. Save the flagship spend for work where nothing can tell the agent it is wrong, because that is the only place we could measure a quality difference at all. And treat refusal rate as a first-class production metric alongside cost and latency, measured on your own traffic, because none of the three findings above appears on any public leaderboard.
+For this class of task, wire your agents to a verification loop and buy the cheap model. Every task where the agent could run the tests was solved by the cheapest model in the lineup for a penny or two per fix, and the expensive models added nothing but latency and cost. Save the flagship spend for work where nothing can tell the agent it is wrong, because that is the only place we could measure a quality difference at all. And treat refusal rate as a first-class production metric alongside cost and latency, measured on your own traffic, because none of the three findings above appears on any public leaderboard.
 
 The harness, the tasks, the per-run results, and the refusal probes are all in [the repo](https://github.com/latitude-dev/coding-agent-benchmark), and the whole benchmark cost $27 in API spend. Point it at whatever models you are choosing between; the numbers that matter are the ones from your own workload.

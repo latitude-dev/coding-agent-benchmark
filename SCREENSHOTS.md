@@ -20,9 +20,9 @@ Capture list for the published version of ARTICLE.md. Each entry notes the secti
 
 📸 **Screenshot 6, the scoreboard the harness pushed back.** Scores or annotations analytics for the project: pass rate broken down by model, showing GPT-5.5 at 100 percent with the rest of the field spread below it once blind runs land. Every run's verdict was pushed onto its trace as a custom score by the harness (`sourceId: benchmark-harness`), so this chart is Latitude recomputing our results table on its own. Caption: "Pass rate by model, computed from scores attached to each trace, not from the harness's private spreadsheet."
 
-## Placed in: The observability layer caught our own cost bug
+## Placed in: What prompt caching does to the bill
 
-📸 **Screenshot 7, the discrepancy.** A GPT-5.3 Codex trace detail with the token and cost panel visible, showing the split between regular input tokens and cache-read tokens (for example 2,664 input against 2,048 cache reads on a single run). This is the panel that disagreed with our harness. Caption: "Latitude prices cache reads separately. Our harness didn't, and the difference was a third of Codex's bill."
+📸 **Screenshot 7, caching in the cost.** A GPT-5.3 Codex trace detail with the token and cost panel visible, showing the split between full-price input tokens and cache-read tokens (for example 2,664 input against 2,048 cache reads on a single run). Caption: "Latitude prices cached tokens at the discounted rate. On the OpenAI models that was more than half the input by the end of the run."
 
 ## Placed in: The model that didn't show up
 
