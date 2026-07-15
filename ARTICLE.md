@@ -75,7 +75,11 @@ The first pass ran every blind task three times per model, and this bug was the 
 
 ![Bar chart of blind solves on the event-bus bug out of 13 trials: GPT-5.6 Sol 13, GPT-5.6 Luna 13, Sonnet 5 5, Fable 5 4, Opus 4.8 3](charts/chart-blind-solves.png)
 
-Both GPT-5.6 models against the Claude field pooled come out at p = 0.000000003 on a Fisher exact test, so this is not sampling luck. It also breaks the pricing intuition completely: **the cheapest model in the lineup ties the flagship with a perfect score, and the most expensive is the worst.**
+Both GPT-5.6 models against the Claude field pooled come out at p = 0.000000003 on a Fisher exact test, which rules out chance. It also breaks the pricing intuition completely: **the cheapest model in the lineup ties the flagship with a perfect score, and the most expensive is the worst.**
+
+Why would the cheapest model tie the flagship on the hardest judgment? The traces suggest the family shares its instincts. Sol, Luna, and the retired GPT-5.5 all solve this bug the same way, with the same four steps, the same one-line guard in the wrapper, and closing summaries that read like the same author, which is what you would expect if the smaller models are trained to imitate the bigger one. And this bug does not test raw reasoning power so much as a habit: deciding that the bus's copy-then-call behavior is a contract to respect, then making the smallest fix that honors it. Every failed run in the benchmark diagnosed the re-entrancy correctly and then rewrote the bus anyway, a more ambitious fix that breaks that contract.
+
+A habit is cheap to carry, so it survives the shrink to a one-dollar-per-million-token model, and the timeline in my own data backs this up. February's GPT-5.3 Codex got the bug 7 of 13, and everything OpenAI has shipped since April gets it perfectly, while all three Claude models lean the other way, toward fixing the architecture instead of the symptom. That instinct is often exactly what a human reviewer wants, but with a hidden test suite pinning the existing behavior, it is fatal.
 
 A lineup note: the benchmark first ran with GPT-5.5 and GPT-5.3 Codex. OpenAI shipped the GPT-5.6 family while I was writing this up and scheduled Codex's API shutdown for July 23, so I reran the full 82-run gauntlet on GPT-5.6 Sol and GPT-5.6 Luna, and the charts show the successors. The retired pair's full numbers are in this repo: GPT-5.5 matched Sol's solves at higher cost, and Codex solved this bug 7 times out of 13.
 
