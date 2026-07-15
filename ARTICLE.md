@@ -4,6 +4,13 @@ I decided to run a little experiment and gave five frontier models the same job:
 
 Two disclosures before I get to the numbers. The harness was built and operated by Claude Fable 5 running as a coding agent, and Fable 5 is also a contestant. The benchmark tasks themselves were authored by Claude-based agents as well, which is a bias that cannot be fully ruled out, so the harness, every task, and the raw per-run results ship in this repo for anyone who wants to check the work or point it at different models.
 
+**TL;DR**
+
+- With tests to run against, every model solved everything. The difference was the bill: a 14x spread in cost for identical outcomes.
+- With tests hidden, one subtle bug separated the field. The GPT-5.6 family solved it every time at every price point; no Claude model got past 5 of 13.
+- Claude Fable 5 refused 40 percent of the work outright; its safety classifier reads ordinary bug fixing as cyber risk.
+- Give your agent a test suite, buy the cheap model, and measure refusal rate on your own traffic.
+
 ## Setup
 
 Each coding task is a real, small library with one planted bug and a test suite that fails because of it. This was broken into two difficulty tiers. The easy tier is twelve single-file bugs, such as an LRU cache that forgets to refresh for recency on reads. The hard tier is six multi-file projects where the defect is a broken contract between modules, such as a pricing module that returns a discount fraction while the totals module subtracts it as cents. A run counts as solved only when the full suite passes against pristine test files, so a model that edits a test to force a pass gets caught and flagged.
@@ -68,7 +75,7 @@ The first pass ran every blind task three times per model, and this bug was the 
 
 ![Bar chart of blind solves on the event-bus bug out of 13 trials: GPT-5.6 Sol 13, GPT-5.6 Luna 13, Sonnet 5 5, Fable 5 4, Opus 4.8 3](charts/chart-blind-solves.png)
 
-Both GPT-5.6 models against the Claude field pooled come out at p = 0.000000003 on a Fisher exact test, so this is not sampling luck. It also breaks the pricing intuition completely: the cheapest model in the lineup ties the flagship with a perfect score, and the most expensive is the worst.
+Both GPT-5.6 models against the Claude field pooled come out at p = 0.000000003 on a Fisher exact test, so this is not sampling luck. It also breaks the pricing intuition completely: **the cheapest model in the lineup ties the flagship with a perfect score, and the most expensive is the worst.**
 
 A lineup note: the benchmark first ran with GPT-5.5 and GPT-5.3 Codex. OpenAI shipped the GPT-5.6 family while I was writing this up and scheduled Codex's API shutdown for July 23, so I reran the full 82-run gauntlet on GPT-5.6 Sol and GPT-5.6 Luna, and the charts show the successors. The retired pair's full numbers are in this repo: GPT-5.5 matched Sol's solves at higher cost, and Codex solved this bug 7 times out of 13.
 
@@ -78,7 +85,7 @@ That is a bit of an interesting revelation, at least as it pertains to this expe
 
 On capability Claude Fable 5 matched the field: the only bugs it ever missed were blind attempts at the event-bus task, and it solved 44 of the 53 runs it attempted. It was also the slowest, around 30 seconds a task, and the most expensive. But 29 of its 82 runs never ran at all. The response came back with Anthropic's `stop_reason: "refusal"` (the AI SDK calls it `content-filter`), usually before a single tool call: nine output tokens, no message, no work.
 
-This was not throttling; refused calls return HTTP 200 with the rate-limit headers nearly full. Fable 5 runs safety classifiers on every request, and a refusal carries a `stop_details.category` field. Every one I inspected read `"cyber"`, with the explanation that the request "triggered restrictions on violative cyber content" under Anthropic's Usage Policy. A bug report about a JSON-patch rollback, handed to an agent with read, write, and test tools, apparently reads as offensive cyber activity to the classifier guarding Anthropic's most safety-hardened model. On this workload Fable 5 declined 40 percent of ordinary bug-fix requests, so if it is in your stack your traces need to watch `stop_reason` and `stop_details`, because your users will hit this before you do.
+This was not throttling; refused calls return HTTP 200 with the rate-limit headers nearly full. Fable 5 runs safety classifiers on every request, and a refusal carries a `stop_details.category` field. Every one I inspected read `"cyber"`, with the explanation that the request "triggered restrictions on violative cyber content" under Anthropic's Usage Policy. A bug report about a JSON-patch rollback, handed to an agent with read, write, and test tools, apparently reads as offensive cyber activity to the classifier guarding Anthropic's most safety-hardened model. **On this workload Fable 5 declined 40 percent of ordinary bug-fix requests**, so if it is in your stack your traces need to watch `stop_reason` and `stop_details`, because your users will hit this before you do.
 
 ## What this benchmark does not tell you
 
