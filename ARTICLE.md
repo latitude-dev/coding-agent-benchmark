@@ -2,6 +2,8 @@
 
 I decided to run a little experiment and gave five frontier models the same job: they got a small JavaScript project and a bug report, with four tools to go and fix it. The models I tested were Claude Opus 4.8, Claude Sonnet 5, Claude Fable 5, GPT-5.6 Sol, and GPT-5.6 Luna where each ran 82 times against 18 tasks, first with the test suite available and then without it, making 410 runs in total, every one traced into Latitude for observability of different metrics like cost and latency. Before carrying out the experiment I expected a ranking of who fixes bugs best. Instead, every model fixed the bugs without too much of a hassle, and the real differences showed up in performance: what a solved task costs, how fast it got there, and oddly enough whether the model agrees to do the work at all.
 
+![Five frontier models, 410 runs: 100 percent solved with tests to run, 14x cost difference for identical outcomes, 40 percent of requests refused by one model's safety layer](charts/hero.png)
+
 Two disclosures before I get to the numbers. The harness was built and operated by Claude Fable 5 running as a coding agent, and Fable 5 is also a contestant. The benchmark tasks themselves were authored by Claude-based agents as well, which is a bias that cannot be fully ruled out, so the harness, every task, and the raw per-run results ship in this repo for anyone who wants to check the work or point it at different models.
 
 **TL;DR**
