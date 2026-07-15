@@ -48,6 +48,14 @@ export const MODELS: ModelSpec[] = [
     envKey: 'OPENAI_API_KEY',
   },
   {
+    key: 'gpt-5.6-sol',
+    label: 'GPT-5.6 Sol',
+    provider: 'openai',
+    model: () => openai('gpt-5.6-sol'),
+    pricing: { input: 5, output: 30, cacheRead: 0.5, cacheWrite: 6.25 },
+    envKey: 'OPENAI_API_KEY',
+  },
+  {
     key: 'gpt-5.3-codex',
     label: 'GPT-5.3 Codex',
     provider: 'openai',
