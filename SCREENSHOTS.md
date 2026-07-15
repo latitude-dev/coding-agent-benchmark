@@ -10,6 +10,8 @@ Capture list for the published version of ARTICLE.md. Each entry notes the secti
 
 📸 **Screenshot 3, one model = one user** (`screenshots/03-models-as-users.png`, in "Tests Available to Agent"). Users view with the five models as users, session counts and total cost per model.
 
+📸 **Screenshot 4, the score on the trace** (`screenshots/04-custom-scores.png`, in "Tests Hidden from Agent"). Scores tab of a failed blind run: the harness's 0 percent custom score with its "hidden suite failed" feedback, and the signal chip grouping these failures.
+
 ## Still to capture
 
 📸 **Screenshot 4, the money chart.** Analytics view charting total cost broken down by user (model), same time window as the benchmark. The bars should visibly step down from Opus and Fable to Codex. Placed in "Tests Available to Agent". Caption: "Same solve rate, 8x the bill. Cost by model across all 410 runs."

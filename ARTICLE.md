@@ -43,6 +43,10 @@ _Each run reports its model id as the user id, so Latitude's per-user view becom
 
 The third tier reused the six hard tasks but removed the agent's ability to check its work: there were no test files in the workspace and no way to execute code. The model was restricted to the bug report and the source. A hidden suite scored the fix afterward to check how it did. The purpose of this was to isolate diagnosis, because the model has to commit to a root cause it cannot verify.
 
+![The scores tab of a failed blind run, showing the harness's 0 percent custom score and a signal grouping hidden-suite failures](screenshots/04-custom-scores.png)
+
+_The hidden suite's verdict lands back on the trace as a score, and a signal groups the failures, so "which model failed which task" stays queryable in Latitude._
+
 Five of the six tasks still got solved by all of the models. In the end, there was only one bug that separated the models and I'll take a moment to explain why.
 
 The task in question is an event bus, the little library pattern where parts of an app subscribe to named events and get called whenever one is emitted. This one ships a `once` helper with a simple task: run the handler for the first event, then never again. Here is the whole thing in code:
