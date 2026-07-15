@@ -1,6 +1,6 @@
 # I Made 5 Frontier Models Run 410 Coding Tasks. Coding Ability Is Not What Separates Them.
 
-I decided to run a little experiment and gave five frontier models the same job: they got a small JavaScript project and a bug report, with four tools to go and fix it. The models I tested were Claude Opus 4.8, Claude Sonnet 5, Claude Fable 5, GPT-5.5, and GPT-5.3 Codex where each ran 82 times against 18 tasks, first with the test suite available and then without it, making 410 runs in total, every one traced into Latitude for observability of different metrics like cost and latency. Before carrying out the experiment I expected a ranking of who fixes bugs best. Instead, every model fixed the bugs without too much of a hassle, and the real differences showed up in performance: what a solved task costs, how fast it got there, and oddly enough whether the model agrees to do the work at all.
+I decided to run a little experiment and gave five frontier models the same job: they got a small JavaScript project and a bug report, with four tools to go and fix it. The models I tested were Claude Opus 4.8, Claude Sonnet 5, Claude Fable 5, GPT-5.6 Sol, and GPT-5.3 Codex where each ran 82 times against 18 tasks, first with the test suite available and then without it, making 410 runs in total, every one traced into Latitude for observability of different metrics like cost and latency. Before carrying out the experiment I expected a ranking of who fixes bugs best. Instead, every model fixed the bugs without too much of a hassle, and the real differences showed up in performance: what a solved task costs, how fast it got there, and oddly enough whether the model agrees to do the work at all.
 
 Two disclosures before I get to the numbers. The harness was built and operated by Claude Fable 5 running as a coding agent, and Fable 5 is also a contestant. The benchmark tasks themselves were authored by Claude-based agents as well, which is a bias that cannot be fully ruled out, so the harness, every task, and the raw per-run results ship in this repo for anyone who wants to check the work or point it at different models.
 
@@ -24,7 +24,7 @@ All five models solved 100 percent of the runs they attempted, on both difficult
 
 However what did vary was the bill. Cost per solved task on the hard tier:
 
-![Bar charts of cost per solved task and median time per task on the hard tier: Codex $0.018 and 12.8s, Sonnet 5 $0.050 and 15.3s, GPT-5.5 $0.070 and 19.2s, Opus 4.8 $0.144 and 20.4s](charts/chart-cost-hard-tier.png)
+![Bar charts of cost per solved task and median time per task on the hard tier: Codex $0.018 and 12.8s, GPT-5.6 Sol $0.049 and 16.4s, Sonnet 5 $0.050 and 15.3s, Opus 4.8 $0.144 and 20.4s](charts/chart-cost-hard-tier.png)
 
 Claude Fable 5 is missing from this table because it refused 16 of its 18 hard-tier runs, too few solves to price fairly, for a reason that gets its own section below. On the easy tier it solved all 23 runs it attempted, at $0.20 each with a 29-second median, still the slowest and priciest of the field.
 
@@ -66,9 +66,11 @@ The fix is a one-liner in the wrapper. Finding it is the hard part: you have to 
 
 The first pass ran every blind task three times per model, and this bug was the only one where anyone failed, so I reran it at thirteen trials per model to make sure I was looking at a real difference:
 
-![Bar chart of blind solves on the event-bus bug out of 13 trials: GPT-5.5 13, Codex 7, Sonnet 5 5, Fable 5 4, Opus 4.8 3](charts/chart-blind-solves.png)
+![Bar chart of blind solves on the event-bus bug out of 13 trials: GPT-5.6 Sol 13, Codex 7, Sonnet 5 5, Fable 5 4, Opus 4.8 3](charts/chart-blind-solves.png)
 
-GPT-5.5 against the rest of the field pooled comes out at p = 0.00002 on a Fisher exact test, so this is not sampling luck. It also scrambles the pricing intuition: the cheapest model in the lineup is second best at blind diagnosis, and the most expensive is the worst.
+GPT-5.6 Sol against the rest of the field pooled comes out at p = 0.00002 on a Fisher exact test, so this is not sampling luck. It also scrambles the pricing intuition: the cheapest model in the lineup is second best at blind diagnosis, and the most expensive is the worst.
+
+A lineup note: the benchmark first ran with GPT-5.5, and OpenAI shipped GPT-5.6 while I was writing this up, so I reran all 82 of its runs on GPT-5.6 Sol. The charts show the successor. GPT-5.5 solved exactly the same tasks, including 13/13 on this bug, at slightly higher cost and latency; its full numbers are in this repo.
 
 That is a bit of an interesting revelation, at least as it pertains to this experiment. The gap between these models is not whether they can fix bugs. It is whether they can reason through a genuinely tricky bug with nothing to check their answer against, and you only pay for that gap when no test can tell the model it is wrong. If your pipeline gives agents a failing test to iterate against, the $0.018 model and the $0.144 model produce the same outcome, and the discriminating case is rare enough that I had to engineer it on purpose.
 
@@ -80,10 +82,10 @@ This was not throttling; refused calls return HTTP 200 with the rate-limit heade
 
 ## What this benchmark does not tell you
 
-The scope here is narrow on purpose so the experiment was nicely isolated. Every task is a small library, 25 to 250 lines, with exactly one planted bug and a bug report that includes a reproduction, which is the friendliest possible framing of "coding agent." This experiment doesn't address repo-scale work, ambiguous requirements, or changes that need design judgment. The tasks were written by Claude-based agents, so a family-level bias in what counts as a natural bug is possible. Every model ran once at its default settings; I did not test whether different reasoning-effort or randomness settings would change the results. Everything ran on a single day from a single region, four runs at a time, and the timing numbers include local test execution.
+The scope here is narrow on purpose so the experiment was nicely isolated. Every task is a small library, 25 to 250 lines, with exactly one planted bug and a bug report that includes a reproduction, which is the friendliest possible framing of "coding agent." This experiment doesn't address repo-scale work, ambiguous requirements, or changes that need design judgment. The tasks were written by Claude-based agents, so a family-level bias in what counts as a natural bug is possible. Every model ran once at its default settings; I did not test whether different reasoning-effort or randomness settings would change the results. Everything ran across two days from a single region, four runs at a time, and the timing numbers include local test execution.
 
 ## What I'd do with these numbers
 
 For this class of task, give your agent a test suite it can run against, wire everything into an observability platform, and buy the cheap model. Every task where the agent could run the tests was solved by the cheapest model in the lineup for a penny or two per fix, and the expensive models added little but latency and cost. Save the flagship spend for work where nothing can tell the agent it is wrong, because that is the only place I could measure a quality difference at all. Finally maybe consider refusal rate as a production metric along with signals like user frustration or escalation, measured on your own traffic.
 
-The harness, the tasks, the per-run results, and the refusal probes are all in this repo, and the whole benchmark cost around $27 in API spend if you do the same setup.
+The harness, the tasks, the per-run results, and the refusal probes are all in this repo, and the whole benchmark cost around $30 in API spend if you do the same setup.

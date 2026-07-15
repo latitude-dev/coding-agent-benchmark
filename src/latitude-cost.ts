@@ -53,7 +53,7 @@ async function main() {
 
   const tierOf = (r: RunResult) =>
     r.mode === 'blind' ? 'blind' : Number(r.task.slice(0, 2)) <= 12 ? 'easy' : 'hard'
-  const models = ['claude-fable-5', 'claude-opus-4-8', 'claude-sonnet-5', 'gpt-5.5', 'gpt-5.3-codex']
+  const models = [...new Set(matched.map((r) => r.model))].sort()
 
   for (const tier of ['easy', 'hard', 'blind']) {
     console.log(`=== ${tier} (Latitude cost)`)
