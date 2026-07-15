@@ -30,9 +30,9 @@ Claude Fable 5 is missing from this table because it refused 16 of its 18 hard-t
 
 **That is a 14x difference for identical outcomes.** Moving from single-file to multi-file bugs roughly doubled Opus's cost per solve while barely moving Luna's, which stayed around a penny on both tiers. When every model gets you the same green checkmark, paying flagship prices for routine fixes is wasteful to say the least.
 
-![Latitude users view showing the five models as users, each with a session count and total cost](screenshots/03-models-as-users.png)
+![Latitude users view showing the benchmark models as users, each with session counts and activity](screenshots/03-models-as-users.png)
 
-_Each run reports its model id as the user id, so Latitude's per-user view becomes a per-model scoreboard. The cost column carries the whole spread: $1.16 of Codex traffic against $10.68 of Fable for the same benchmark._
+_Every model tested across the benchmark, tracked as a user. Each run reports its model id as the user id, so Latitude's per-user view becomes a per-model scoreboard._
 
 ## Tests Hidden from Agent
 
