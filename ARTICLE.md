@@ -1,4 +1,4 @@
-# I Benchmarked Five Frontier Models as Coding Agents. All of Them Can Code. That Is Not What Separates Them.
+# I Made 5 Frontier Models Run 410 Coding Tasks. Coding Ability Is Not What Separates Them.
 
 I decided to run a little experiment and gave five frontier models the same job: they got a small JavaScript project and a bug report, with four tools to go and fix it. The models I tested were Claude Opus 4.8, Claude Sonnet 5, Claude Fable 5, GPT-5.5, and GPT-5.3 Codex where each ran 82 times against 18 tasks, first with the test suite available and then without it, making 410 runs in total, every one traced into Latitude for observability of different metrics like cost and latency. Before carrying out the experiment I expected a ranking of who fixes bugs best. Instead, every model fixed the bugs without too much of a hassle, and the real differences showed up in performance: what a solved task costs, how fast it got there, and oddly enough whether the model agrees to do the work at all.
 
