@@ -56,6 +56,22 @@ export const MODELS: ModelSpec[] = [
     envKey: 'OPENAI_API_KEY',
   },
   {
+    key: 'gpt-5.6-terra',
+    label: 'GPT-5.6 Terra',
+    provider: 'openai',
+    model: () => openai('gpt-5.6-terra'),
+    pricing: { input: 2.5, output: 15, cacheRead: 0.25, cacheWrite: 3.125 },
+    envKey: 'OPENAI_API_KEY',
+  },
+  {
+    key: 'gpt-5.6-luna',
+    label: 'GPT-5.6 Luna',
+    provider: 'openai',
+    model: () => openai('gpt-5.6-luna'),
+    pricing: { input: 1, output: 6, cacheRead: 0.1, cacheWrite: 1.25 },
+    envKey: 'OPENAI_API_KEY',
+  },
+  {
     key: 'gpt-5.3-codex',
     label: 'GPT-5.3 Codex',
     provider: 'openai',
