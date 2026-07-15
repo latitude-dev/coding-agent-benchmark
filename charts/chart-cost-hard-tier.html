@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><style>body{margin:0;background:#ffffff;}</style></head>
+<body>
+<svg width="760" height="316" viewBox="0 0 760 316" xmlns="http://www.w3.org/2000/svg" font-family="Inter, -apple-system, 'Segoe UI', system-ui, sans-serif">
+  <rect width="760" height="316" fill="#ffffff"/>
+  <text x="24" y="34" font-size="16" font-weight="600" fill="#1F2328">Hard tier: every model solved every task it attempted</text>
+  <text x="24" y="56" font-size="13" fill="#57606A">What differed was the bill and the wait. Cost per solved task and median time, 18 runs per model.</text>
+
+  <!-- panel titles -->
+  <text x="148" y="96" font-size="12" font-weight="600" fill="#57606A">COST PER SOLVED TASK</text>
+  <text x="464" y="96" font-size="12" font-weight="600" fill="#57606A">MEDIAN TIME PER TASK</text>
+
+  <!-- rows: GPT-5.3 Codex, Claude Sonnet 5, GPT-5.5, Claude Opus 4.8 -->
+  <!-- cost scale: $0.16 -> 240px ; time scale: 24s -> 240px -->
+  <g font-size="13">
+    <!-- model labels -->
+    <text x="136" y="126" text-anchor="end" fill="#1F2328">GPT-5.3 Codex</text>
+    <text x="136" y="172" text-anchor="end" fill="#1F2328">Claude Sonnet 5</text>
+    <text x="136" y="218" text-anchor="end" fill="#1F2328">GPT-5.5</text>
+    <text x="136" y="264" text-anchor="end" fill="#1F2328">Claude Opus 4.8</text>
+  </g>
+
+  <!-- cost bars (x0=148) -->
+  <g fill="#0080FF">
+    <path d="M148 112 h23 a4 4 0 0 1 4 4 v14 a4 4 0 0 1 -4 4 h-23 z"/>
+    <path d="M148 158 h71 a4 4 0 0 1 4 4 v14 a4 4 0 0 1 -4 4 h-71 z"/>
+    <path d="M148 204 h101 a4 4 0 0 1 4 4 v14 a4 4 0 0 1 -4 4 h-101 z"/>
+    <path d="M148 250 h212 a4 4 0 0 1 4 4 v14 a4 4 0 0 1 -4 4 h-212 z"/>
+  </g>
+  <g font-size="13" fill="#1F2328">
+    <text x="183" y="126">$0.018</text>
+    <text x="231" y="172">$0.050</text>
+    <text x="261" y="218">$0.070</text>
+    <text x="372" y="264">$0.144</text>
+  </g>
+
+  <!-- time bars (x0=464), scale 24s -> 240px => px = s * 10 -->
+  <g fill="#0080FF">
+    <path d="M464 112 h124 a4 4 0 0 1 4 4 v14 a4 4 0 0 1 -4 4 h-124 z"/>
+    <path d="M464 158 h149 a4 4 0 0 1 4 4 v14 a4 4 0 0 1 -4 4 h-149 z"/>
+    <path d="M464 204 h188 a4 4 0 0 1 4 4 v14 a4 4 0 0 1 -4 4 h-188 z"/>
+    <path d="M464 250 h200 a4 4 0 0 1 4 4 v14 a4 4 0 0 1 -4 4 h-200 z"/>
+  </g>
+  <g font-size="13" fill="#1F2328">
+    <text x="596" y="126">12.8s</text>
+    <text x="621" y="172">15.3s</text>
+    <text x="660" y="218">19.2s</text>
+    <text x="672" y="264">20.4s</text>
+  </g>
+
+  <text x="24" y="302" font-size="12" fill="#8B949E">Latitude per-trace cost, models.dev rates. 18/18 solved for every model shown.</text>
+</svg>
+</body>
+</html>

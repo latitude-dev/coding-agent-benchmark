@@ -24,12 +24,7 @@ All five models solved 100 percent of the runs they attempted, on both difficult
 
 However what did vary was the bill. Cost per solved task on the hard tier:
 
-| Model           | Cost per solved task | Median time per task |
-| --------------- | -------------------- | -------------------- |
-| GPT-5.3 Codex   | $0.018               | 12.8s                |
-| Claude Sonnet 5 | $0.050               | 15.3s                |
-| GPT-5.5         | $0.070               | 19.2s                |
-| Claude Opus 4.8 | $0.144               | 20.4s                |
+![Bar charts of cost per solved task and median time per task on the hard tier: Codex $0.018 and 12.8s, Sonnet 5 $0.050 and 15.3s, GPT-5.5 $0.070 and 19.2s, Opus 4.8 $0.144 and 20.4s](charts/chart-cost-hard-tier.png)
 
 Claude Fable 5 is missing from this table because it refused 16 of its 18 hard-tier runs, too few solves to price fairly, for a reason that gets its own section below. On the easy tier it solved all 23 runs it attempted, at $0.20 each with a 29-second median, still the slowest and priciest of the field.
 
@@ -71,13 +66,7 @@ The fix is a one-liner in the wrapper. Finding it is the hard part: you have to 
 
 The first pass ran every blind task three times per model, and this bug was the only one where anyone failed, so I reran it at thirteen trials per model to make sure I was looking at a real difference:
 
-| Model           | Blind solves on the event-bus bug |
-| --------------- | --------------------------------- |
-| GPT-5.5         | 13/13                             |
-| GPT-5.3 Codex   | 7/13                              |
-| Claude Sonnet 5 | 5/13                              |
-| Claude Fable 5  | 4/13                              |
-| Claude Opus 4.8 | 3/13                              |
+![Bar chart of blind solves on the event-bus bug out of 13 trials: GPT-5.5 13, Codex 7, Sonnet 5 5, Fable 5 4, Opus 4.8 3](charts/chart-blind-solves.png)
 
 GPT-5.5 against the rest of the field pooled comes out at p = 0.00002 on a Fisher exact test, so this is not sampling luck. It also scrambles the pricing intuition: the cheapest model in the lineup is second best at blind diagnosis, and the most expensive is the worst.
 

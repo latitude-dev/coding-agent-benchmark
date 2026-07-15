@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><style>body{margin:0;background:#ffffff;}</style></head>
+<body>
+<svg width="760" height="340" viewBox="0 0 760 340" xmlns="http://www.w3.org/2000/svg" font-family="Inter, -apple-system, 'Segoe UI', system-ui, sans-serif">
+  <rect width="760" height="340" fill="#ffffff"/>
+  <text x="24" y="34" font-size="16" font-weight="600" fill="#1F2328">The one bug that separated the field</text>
+  <text x="24" y="56" font-size="13" fill="#57606A">Blind solves of the event-bus bug, no tests to check against, 13 trials per model.</text>
+
+  <!-- rows: GPT-5.5 13, Codex 7, Sonnet 5, Fable 4, Opus 3 ; track x0=172 width 500 (13 -> 500px) -->
+  <g font-size="13">
+    <text x="160" y="106" text-anchor="end" fill="#1F2328">GPT-5.5</text>
+    <text x="160" y="152" text-anchor="end" fill="#1F2328">GPT-5.3 Codex</text>
+    <text x="160" y="198" text-anchor="end" fill="#1F2328">Claude Sonnet 5</text>
+    <text x="160" y="244" text-anchor="end" fill="#1F2328">Claude Fable 5</text>
+    <text x="160" y="290" text-anchor="end" fill="#1F2328">Claude Opus 4.8</text>
+  </g>
+
+  <!-- tracks (rail to 13) -->
+  <g fill="#EDF0F3">
+    <rect x="172" y="92"  width="500" height="22" rx="4"/>
+    <rect x="172" y="138" width="500" height="22" rx="4"/>
+    <rect x="172" y="184" width="500" height="22" rx="4"/>
+    <rect x="172" y="230" width="500" height="22" rx="4"/>
+    <rect x="172" y="276" width="500" height="22" rx="4"/>
+  </g>
+
+  <!-- bars: px = n/13*500 -> 13:500, 7:269, 5:192, 4:154, 3:115 -->
+  <g fill="#0080FF">
+    <path d="M172 92  h496 a4 4 0 0 1 4 4 v14 a4 4 0 0 1 -4 4 h-496 z"/>
+    <path d="M172 138 h265 a4 4 0 0 1 4 4 v14 a4 4 0 0 1 -4 4 h-265 z"/>
+    <path d="M172 184 h188 a4 4 0 0 1 4 4 v14 a4 4 0 0 1 -4 4 h-188 z"/>
+    <path d="M172 230 h150 a4 4 0 0 1 4 4 v14 a4 4 0 0 1 -4 4 h-150 z"/>
+    <path d="M172 276 h111 a4 4 0 0 1 4 4 v14 a4 4 0 0 1 -4 4 h-111 z"/>
+  </g>
+
+  <!-- labels to the right of the rail -->
+  <g font-size="13" fill="#1F2328">
+    <text x="682" y="107">13/13</text>
+    <text x="682" y="153">7/13</text>
+    <text x="682" y="199">5/13</text>
+    <text x="682" y="245">4/13</text>
+    <text x="682" y="291">3/13</text>
+  </g>
+
+  <text x="24" y="326" font-size="12" fill="#8B949E">GPT-5.5 vs the pooled field: p = 0.00002, Fisher exact test.</text>
+</svg>
+</body>
+</html>
